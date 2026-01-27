@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+  app:
+    build: .
+    container_name: privacy-repo
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - ADMIN_PASSWORD=admin123
+      - GUEST_PASSWORD=guest123
+    volumes:
+      # Persist uploads and data
+      - ./public/uploads:/app/public/uploads
+      - ./data:/app/data
