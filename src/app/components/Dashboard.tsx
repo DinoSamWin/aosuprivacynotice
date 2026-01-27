@@ -115,6 +115,7 @@ export default function Dashboard({ role }: DashboardProps) {
     const [newFolderName, setNewFolderName] = useState('');
     const [uploadFile, setUploadFile] = useState<File | null>(null);
     const [uploadRemark, setUploadRemark] = useState('');
+    const [isResetModalOpen, setIsResetModalOpen] = useState(false);
 
     // DnD Sensors
     const sensors = useSensors(
@@ -201,7 +202,22 @@ export default function Dashboard({ role }: DashboardProps) {
             await api.deleteFile(id);
             loadData();
         } catch (err) {
+            console.error(err);
             alert('Failed to delete file');
+        }
+    };
+
+    const handleReset = async () => {
+        try {
+            const res = await fetch('/api/admin/reset', { method: 'POST' });
+            if (!res.ok) throw new Error('Reset failed');
+            setIsResetModalOpen(false);
+            setCurrentFolderId(null);
+            setBreadcrumbs([]);
+            loadData();
+            alert('Repository reset successfully');
+        } catch (err) {
+            alert('Failed to reset repository');
         }
     };
 
@@ -287,6 +303,13 @@ export default function Dashboard({ role }: DashboardProps) {
                                 Upload File
                             </button>
                         )}
+                        <button
+                            onClick={() => setIsResetModalOpen(true)}
+                            className="flex items-center px-4 py-2 bg-red-50 text-red-600 border border-red-200 rounded-lg text-sm font-medium hover:bg-red-100 transition-all shadow-sm active:transform active:scale-95"
+                        >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Reset Data
+                        </button>
                     </div>
                 )}
             </div>
@@ -446,6 +469,31 @@ export default function Dashboard({ role }: DashboardProps) {
                     </div>
                 </form>
             </Modal>
-        </div>
+
+            <Modal isOpen={isResetModalOpen} onClose={() => setIsResetModalOpen(false)} title="Dangerous: Reset Repository">
+                <div className="space-y-4">
+                    <p className="text-gray-600">
+                        Are you sure you want to delete ALL folders and files?
+                        This will reset the database. Actual files in cloud storage might remain but will be unlinked.
+                        <br /><br />
+                        <strong className="text-red-600">This action cannot be undone.</strong>
+                    </p>
+                    <div className="flex justify-end pt-2 space-x-3">
+                        <button
+                            onClick={() => setIsResetModalOpen(false)}
+                            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={handleReset}
+                            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium"
+                        >
+                            Confirm Reset
+                        </button>
+                    </div>
+                </div>
+            </Modal>
+        </div >
     );
 }
