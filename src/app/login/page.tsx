@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Lock } from 'lucide-react';
+import Image from 'next/image';
 
 export default function LoginPage() {
     const [password, setPassword] = useState('');
@@ -36,10 +36,18 @@ export default function LoginPage() {
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
             <div className="max-w-md w-full p-8 bg-white rounded-xl shadow-lg border border-gray-100">
                 <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full mb-4">
-                        <Lock className="w-6 h-6 text-blue-600" />
+                    <div className="flex justify-center mb-6">
+                        <div className="relative w-32 h-12">
+                            <Image
+                                src="/logo.png"
+                                alt="aosu Logo"
+                                fill
+                                className="object-contain"
+                                priority
+                            />
+                        </div>
                     </div>
-                    <h1 className="text-2xl font-bold text-gray-900">Privacy Policy Repository</h1>
+                    <h1 className="text-2xl font-bold text-gray-900">aosu Privacy Notice</h1>
                     <p className="text-gray-500 mt-2">Please enter your access code</p>
                 </div>
 
@@ -65,7 +73,7 @@ export default function LoginPage() {
                         type="submit"
                         className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all transform active:scale-95"
                     >
-                        Enter Repository
+                        Login
                     </button>
                 </form>
             </div>
