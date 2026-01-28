@@ -428,40 +428,29 @@ export default function Dashboard({ role }: DashboardProps) {
                                         {files.map((file) => (
                                             <li key={file.id} className="px-8 py-5 hover:bg-gray-50/80 flex items-center justify-between group transition-colors">
                                                 <div className="flex-1 min-w-0 pr-6">
-                                                    <div className="flex items-center mb-1">
+                                                    <div className="flex items-center mb-2">
                                                         <a
                                                             href={getFileUrl(file)}
                                                             target="_blank"
                                                             rel="noreferrer"
-                                                            className="flex items-center group-hover:bg-blue-50 rounded-lg p-2 -ml-2 transition-colors mr-3"
+                                                            className="flex items-center group-hover:bg-blue-50/50 rounded-xl p-2 -ml-2 transition-all duration-200 mr-3"
                                                         >
-                                                            <div className="mr-3 p-1.5 bg-gray-100 rounded-md group-hover:bg-white transition-colors">
+                                                            <div className="mr-4 p-2 bg-gray-50 rounded-lg group-hover:bg-white group-hover:shadow-sm transition-all border border-gray-100/50 group-hover:border-blue-100">
                                                                 {getFileIcon(file.name)}
                                                             </div>
-                                                            <span className="text-base font-bold text-gray-800 group-hover:text-blue-600 underline decoration-gray-300 group-hover:decoration-blue-400 underline-offset-4 decoration-2 transition-all">
+                                                            <span className="text-base font-bold text-gray-700 group-hover:text-blue-700 transition-colors">
                                                                 {file.name}
                                                             </span>
                                                         </a>
-                                                        {file.remark && (
-                                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-600 border border-amber-100/50">
-                                                                Remark
-                                                            </span>
-                                                        )}
                                                     </div>
 
                                                     {file.remark ? (
-                                                        <div className="mt-1.5 mb-2 ml-14">
-                                                            <span className="inline-block px-3 py-1 bg-orange-50 text-orange-700 text-sm font-medium rounded-lg border border-orange-100">
+                                                        <div className="ml-[3.25rem] mb-3">
+                                                            <div className="inline-flex items-center px-2.5 py-1 bg-gradient-to-r from-orange-50 to-amber-50 text-orange-700 text-xs font-semibold rounded-md border border-orange-100/50 shadow-sm">
                                                                 {file.remark}
-                                                            </span>
+                                                            </div>
                                                         </div>
                                                     ) : null}
-
-                                                    <div className="flex items-center text-xs text-gray-400 font-medium ml-14">
-                                                        <span>{new Date(file.uploadDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</span>
-                                                        <span className="mx-2">•</span>
-                                                        <span className="uppercase">{file.name.split('.').pop()}</span>
-                                                    </div>
                                                 </div>
 
                                                 <div className="flex items-center">
