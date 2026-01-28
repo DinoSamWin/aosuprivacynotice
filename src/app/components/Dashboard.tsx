@@ -68,22 +68,23 @@ function SortableFolderItem({ folder, role, onOpen, onDelete }: {
             {...attributes}
             {...listeners}
             className={`
-        group relative p-4 bg-white rounded-xl border border-gray-100 shadow-sm 
-        hover:shadow-md transition-all cursor-pointer select-none
+        group relative p-6 bg-white rounded-2xl border border-gray-50 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] 
+        hover:shadow-[0_8px_20px_-6px_rgba(6,81,237,0.15)] transition-all cursor-pointer select-none
+        flex flex-col items-center justify-center aspect-[4/3]
         ${role === 'admin' ? 'active:cursor-grabbing' : ''}
       `}
             onClick={(e) => {
-                // Prevent click when dragging or clicking actions
                 if (isDragging) return;
                 onOpen(folder.id, folder.name);
             }}
         >
-            <div className="flex flex-col items-center text-center space-y-3">
-                <div className="p-3 bg-blue-50 rounded-full group-hover:bg-blue-100 transition-colors">
-                    <FolderIcon className="w-8 h-8 text-blue-500" />
+            <div className="mb-4 relative">
+                <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-500 group-hover:bg-blue-100 group-hover:scale-110 transition-all duration-300">
+                    <FolderIcon className="w-8 h-8" strokeWidth={1.5} />
                 </div>
-                <span className="font-medium text-gray-700 truncate w-full px-2 text-sm">{folder.name}</span>
             </div>
+            <span className="font-semibold text-gray-800 text-center line-clamp-2 px-2 text-sm">{folder.name}</span>
+            <p className="text-xs text-gray-400 mt-1">Folder</p>
 
             {role === 'admin' && (
                 <button
@@ -91,7 +92,7 @@ function SortableFolderItem({ folder, role, onOpen, onDelete }: {
                         e.stopPropagation();
                         if (confirm('Delete this folder and all contents?')) onDelete(folder.id);
                     }}
-                    className="absolute top-2 right-2 p-1 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute top-3 right-3 p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-full opacity-0 group-hover:opacity-100 transition-all"
                 >
                     <Trash2 className="w-4 h-4" />
                 </button>
@@ -239,174 +240,225 @@ export default function Dashboard({ role }: DashboardProps) {
     };
 
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-8">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Document Repository</h1>
-                    <p className="text-sm text-gray-500 mt-1">Logged in as: <span className="font-semibold capitalize">{role}</span></p>
+        <div className="flex h-screen bg-gray-50">
+            {/* Sidebar */}
+            <div className="w-64 bg-white border-r border-gray-100 flex flex-col hidden md:flex">
+                <div className="p-6 border-b border-gray-50">
+                    <h1 className="text-xl font-bold text-gray-800">aosu Privacy</h1>
                 </div>
-                <div className="flex items-center space-x-4">
-                    {/* Logout could be just deleting cookie, but sticking to basics: reload/clear */}
+
+                <nav className="flex-1 p-4 space-y-1">
                     <button
-                        onClick={() => {
-                            document.cookie = 'auth_session=; Max-Age=0; path=/;';
-                            router.push('/login');
-                            router.refresh();
-                        }}
-                        className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                        onClick={() => { setCurrentFolderId(null); setBreadcrumbs([]); }}
+                        className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-colors ${!currentFolderId ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50'}`}
                     >
-                        <LogOut className="w-4 h-4 mr-2" />
-                        Logout
+                        <FolderIcon className="w-5 h-5 mr-3" />
+                        All Documents
                     </button>
+                    {/* Placeholder links for visual completeness */}
+                    <div className="text-xs font-semibold text-gray-400 mt-6 mb-2 px-4 uppercase tracking-wider">Manage</div>
+                    {role === 'admin' && (
+                        <>
+                            <button onClick={() => setIsCreateModalOpen(true)} className="w-full flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-xl hover:bg-gray-50 transition-colors">
+                                <Plus className="w-5 h-5 mr-3" />
+                                New Folder
+                            </button>
+                            <button onClick={() => setIsResetModalOpen(true)} className="w-full flex items-center px-4 py-3 text-sm font-medium text-red-600 rounded-xl hover:bg-red-50 transition-colors">
+                                <Trash2 className="w-5 h-5 mr-3" />
+                                Reset Data
+                            </button>
+                        </>
+                    )}
+                </nav>
+
+                <div className="p-4 border-t border-gray-50">
+                    <div className="flex items-center px-4 py-3">
+                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs uppercase mr-3">
+                            {role[0]}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 capitalize">{role}</p>
+                            <p className="text-xs text-gray-500 truncate">Logged in</p>
+                        </div>
+                        <button
+                            onClick={() => {
+                                document.cookie = 'auth_session=; Max-Age=0; path=/;';
+                                router.push('/login');
+                                router.refresh();
+                            }}
+                            className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                        >
+                            <LogOut className="w-4 h-4" />
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            {/* Breadcrumbs & Actions */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
-                <nav className="flex items-center flex-wrap gap-2 text-sm text-gray-600">
-                    <button
-                        onClick={() => handleNavigateUp(-1)}
-                        className="hover:text-blue-600 font-medium transition-colors"
-                    >
-                        Home
-                    </button>
+            {/* Main Content */}
+            <div className="flex-1 flex flex-col overflow-hidden">
+                {/* Mobile Header */}
+                <header className="md:hidden bg-white border-b border-gray-100 p-4 flex items-center justify-between">
+                    <h1 className="text-lg font-bold text-gray-800">aosu Privacy</h1>
+                    <div className="flex items-center space-x-2">
+                        {/* Mobile interactions could go here */}
+                    </div>
+                </header>
 
-                    {breadcrumbs.map((crumb, idx) => (
-                        <div key={crumb.id} className="flex items-center">
-                            <ChevronRight className="w-4 h-4 mx-1 text-gray-400" />
+                <main className="flex-1 overflow-auto p-6 md:p-8">
+                    {/* Top Bar with Breadcrumbs & Actions */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+                        <nav className="flex items-center flex-wrap gap-2 text-sm text-gray-600">
                             <button
-                                onClick={() => handleNavigateUp(idx)}
-                                className={`hover:text-blue-600 transition-colors ${idx === breadcrumbs.length - 1 ? 'font-semibold text-gray-900' : ''}`}
+                                onClick={() => { setCurrentFolderId(null); setBreadcrumbs([]); }}
+                                className={`hover:text-blue-600 font-medium transition-colors ${!currentFolderId ? 'text-gray-900 font-bold' : ''}`}
                             >
-                                {crumb.name}
+                                Repository
                             </button>
-                        </div>
-                    ))}
-                </nav>
+                            {breadcrumbs.length > 0 && <span className="text-gray-300">/</span>}
+                            {breadcrumbs.map((crumb, idx) => (
+                                <div key={crumb.id} className="flex items-center">
+                                    <button
+                                        onClick={() => handleNavigateUp(idx)}
+                                        className={`hover:text-blue-600 transition-colors ${idx === breadcrumbs.length - 1 ? 'font-bold text-gray-900' : ''}`}
+                                    >
+                                        {crumb.name}
+                                    </button>
+                                    {idx < breadcrumbs.length - 1 && <ChevronRight className="w-4 h-4 mx-1 text-gray-300" />}
+                                </div>
+                            ))}
+                        </nav>
 
-                {role === 'admin' && (
-                    <div className="flex items-center space-x-3">
-                        <button
-                            onClick={() => setIsCreateModalOpen(true)}
-                            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-all shadow-sm active:transform active:scale-95"
-                        >
-                            <Plus className="w-4 h-4 mr-2" />
-                            New Folder
-                        </button>
-                        {currentFolderId && (
+                        {role === 'admin' && currentFolderId && (
                             <button
                                 onClick={() => setIsUploadModalOpen(true)}
-                                className="flex items-center px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 transition-all shadow-sm active:transform active:scale-95"
+                                className="flex items-center px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-all shadow-md shadow-blue-200 active:transform active:scale-95"
                             >
                                 <Upload className="w-4 h-4 mr-2" />
                                 Upload File
                             </button>
                         )}
-                        <button
-                            onClick={() => setIsResetModalOpen(true)}
-                            className="flex items-center px-4 py-2 bg-red-50 text-red-600 border border-red-200 rounded-lg text-sm font-medium hover:bg-red-100 transition-all shadow-sm active:transform active:scale-95"
-                        >
-                            <Trash2 className="w-4 h-4 mr-2" />
-                            Reset Data
-                        </button>
                     </div>
-                )}
-            </div>
 
-            {/* Content */}
-            <div className="space-y-8">
-                {/* Folders */}
-                {folders.length > 0 && (
-                    <DndContext
-                        sensors={sensors}
-                        collisionDetection={closestCenter}
-                        onDragEnd={handleDragEnd}
-                    >
-                        <SortableContext
-                            items={folders.map(f => f.id)}
-                            strategy={rectSortingStrategy}
-                        >
-                            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                                {folders.map((folder) => (
-                                    <SortableFolderItem
-                                        key={folder.id}
-                                        folder={folder}
-                                        role={role}
-                                        onOpen={handleOpenFolder}
-                                        onDelete={handleDeleteFolder}
-                                    />
-                                ))}
+                    {/* Content */}
+                    <div className="space-y-8">
+                        {/* Folders */}
+                        {folders.length > 0 && (
+                            <DndContext
+                                sensors={sensors}
+                                collisionDetection={closestCenter}
+                                onDragEnd={handleDragEnd}
+                            >
+                                <SortableContext
+                                    items={folders.map(f => f.id)}
+                                    strategy={rectSortingStrategy}
+                                >
+                                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                                        {folders.map((folder) => (
+                                            <SortableFolderItem
+                                                key={folder.id}
+                                                folder={folder}
+                                                role={role}
+                                                onOpen={handleOpenFolder}
+                                                onDelete={handleDeleteFolder}
+                                            />
+                                        ))}
+                                    </div>
+                                </SortableContext>
+                            </DndContext>
+                        )}
+
+                        {/* Empty State for Root */}
+                        {folders.length === 0 && !currentFolderId && (
+                            <div className="text-center py-20">
+                                <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+                                    <FolderIcon className="w-8 h-8 text-gray-400" />
+                                </div>
+                                <h3 className="text-lg font-medium text-gray-900">Empty Repository</h3>
+                                <p className="text-gray-500 mt-1">Start by creating a folder.</p>
                             </div>
-                        </SortableContext>
-                    </DndContext>
-                )}
+                        )}
 
-                {/* Empty State for Root */}
-                {folders.length === 0 && !currentFolderId && (
-                    <div className="text-center py-20">
-                        <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
-                            <FolderIcon className="w-8 h-8 text-gray-400" />
-                        </div>
-                        <h3 className="text-lg font-medium text-gray-900">Empty Repository</h3>
-                        <p className="text-gray-500 mt-1">Start by creating a folder.</p>
-                    </div>
-                )}
-
-                {/* Files (Only in folders) */}
-                {currentFolderId && (
-                    <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-                        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-                            <h2 className="font-semibold text-gray-900 flex items-center">
-                                <FileText className="w-5 h-5 mr-2 text-blue-500" />
-                                Files
-                            </h2>
-                            {/* Optional: Simple count or info */}
-                        </div>
-
-                        {files.length === 0 ? (
-                            <div className="p-8 text-center text-gray-500">
-                                No files in this folder.
-                            </div>
-                        ) : (
-                            <ul className="divide-y divide-gray-100">
-                                {files.map((file) => (
-                                    <li key={file.id} className="px-6 py-4 hover:bg-gray-50 flex items-center justify-between group transition-colors">
-                                        <div className="flex-1 min-w-0 pr-4">
-                                            <a
-                                                href={file.path}
-                                                target="_blank"
-                                                rel="noreferrer"
-                                                className="text-sm font-medium text-gray-900 hover:text-blue-600 truncate block"
-                                            >
-                                                {file.name}
-                                            </a>
-                                            {file.remark && (
-                                                <div className="mt-2 text-sm text-gray-800 bg-amber-50 border border-amber-200 p-2 rounded-md flex items-start">
-                                                    <span className="font-semibold text-amber-600 mr-2 text-xs uppercase tracking-wide shrink-0 pt-0.5">Remark:</span>
-                                                    <span>{file.remark}</span>
-                                                </div>
-                                            )}
-                                            <span className="text-xs text-gray-400 mt-2 block">
-                                                {new Date(file.uploadDate).toLocaleDateString()}
-                                            </span>
+                        {/* Files (Only in folders) */}
+                        {currentFolderId && (
+                            <div className="bg-white rounded-2xl border border-gray-50 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] overflow-hidden">
+                                <div className="px-8 py-5 border-b border-gray-50 flex items-center justify-between bg-white">
+                                    <h2 className="font-bold text-gray-800 flex items-center text-lg">
+                                        <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center mr-3">
+                                            <FileText className="w-4 h-4" />
                                         </div>
-                                        {role === 'admin' && (
-                                            <button
-                                                onClick={() => {
-                                                    if (confirm('Delete this file?')) handleDeleteFile(file.id);
-                                                }}
-                                                className="p-2 text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
-                                        )}
-                                    </li>
-                                ))}
-                            </ul>
+                                        Files
+                                    </h2>
+                                    <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">{files.length} items</span>
+                                </div>
+
+                                {files.length === 0 ? (
+                                    <div className="p-12 text-center text-gray-400 flex flex-col items-center">
+                                        <FileText className="w-12 h-12 text-gray-200 mb-3" />
+                                        <p>No files in this folder.</p>
+                                    </div>
+                                ) : (
+                                    <ul className="divide-y divide-gray-50">
+                                        {files.map((file) => (
+                                            <li key={file.id} className="px-8 py-5 hover:bg-gray-50/80 flex items-center justify-between group transition-colors">
+                                                <div className="flex-1 min-w-0 pr-6">
+                                                    <div className="flex items-center mb-1">
+                                                        <a
+                                                            href={file.path}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                            className="text-base font-semibold text-gray-700 hover:text-blue-600 truncate mr-3 transition-colors"
+                                                        >
+                                                            {file.name}
+                                                        </a>
+                                                        {file.remark && (
+                                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-600 border border-amber-100/50">
+                                                                Remark
+                                                            </span>
+                                                        )}
+                                                    </div>
+
+                                                    {file.remark ? (
+                                                        <p className="text-sm text-gray-500 mb-2 line-clamp-1">{file.remark}</p>
+                                                    ) : null}
+
+                                                    <div className="flex items-center text-xs text-gray-400 font-medium">
+                                                        <span>{new Date(file.uploadDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+                                                        <span className="mx-2">•</span>
+                                                        <span className="uppercase">PDF</span>
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex items-center">
+                                                    <a
+                                                        href={file.path}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        className="p-2 text-gray-300 hover:text-blue-600 transition-colors mr-2"
+                                                        title="View File"
+                                                    >
+                                                        <ArrowLeft className="w-5 h-5 rotate-180" />
+                                                    </a>
+                                                    {role === 'admin' && (
+                                                        <button
+                                                            onClick={() => {
+                                                                if (confirm('Delete this file?')) handleDeleteFile(file.id);
+                                                            }}
+                                                            className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
+                                                            title="Delete File"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </div>
                         )}
                     </div>
-                )}
+
+                </main>
             </div>
 
             {/* Modals */}
