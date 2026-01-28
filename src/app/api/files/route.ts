@@ -39,26 +39,24 @@ export async function POST(request: NextRequest) {
     let fileUrl = '';
 
     // Hybrid Storage Logic
-    if (process.env.BLOB_READ_WRITE_TOKEN) {
-        // Vercel Blob
-        const blob = await put(filename, file, { access: 'public' });
-        fileUrl = blob.url;
-    } else {
-        // Local File System
-        const buffer = Buffer.from(await file.arrayBuffer());
-        // Sanitize filename or use UUID to prevent overwrites implies logic, 
-        // but to keep it simple and searchable, we might prepend UUID or keep as is if unique.
-        // Let's use a safe filename strategy: uuid-filename
-        const safeFilename = `${uuidv4()}-${filename}`;
-        const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-        const filePath = path.join(uploadDir, safeFilename);
+    try {
+        if (process.env.BLOB_READ_WRITE_TOKEN) {
+            // Vercel Blob
+            const blob = await put(filename, file, { access: 'public' });
+            fileUrl = blob.url;
+        } else {
+            // Local File System
+            const buffer = Buffer.from(await file.arrayBuffer());
+            const safeFilename = `${uuidv4()}-${filename}`;
+            const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+            const filePath = path.join(uploadDir, safeFilename);
 
-        try {
             await writeFile(filePath, buffer);
             fileUrl = `/uploads/${safeFilename}`;
-        } catch (error) {
-            return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
         }
+    } catch (error) {
+        console.error('Upload Error:', error);
+        return NextResponse.json({ error: 'Upload failed: ' + (error as Error).message }, { status: 500 });
     }
 
     const fileRecord = {
