@@ -37,7 +37,7 @@ export default function LoginPage() {
             <div className="max-w-md w-full p-8 bg-white rounded-xl shadow-lg border border-gray-100">
                 <div className="text-center mb-8">
                     <div className="flex justify-center mb-6">
-                        <div className="relative w-32 h-12 rounded-xl overflow-hidden">
+                        <div className="relative w-24 h-24 rounded-xl overflow-hidden">
                             <Image
                                 src="/logo.png"
                                 alt="aosu Logo"
