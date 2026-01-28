@@ -465,20 +465,6 @@ export default function Dashboard({ role }: DashboardProps) {
                             </div>
                         </div>
                     )}
-            </div>
-
-        </main>
-            </div >
-
-        {/* Modals */ }
-        < Modal isOpen = { isCreateModalOpen } onClose = {() => setIsCreateModalOpen(false)
-} title = "Create New Folder" >
-    <form onSubmit={handleCreateFolder}>
-        <div className="space-y-4">
-            <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Folder Name</label>
-                <input
-                    type="text"
                     value={newFolderName}
                     onChange={(e) => setNewFolderName(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
@@ -495,7 +481,7 @@ export default function Dashboard({ role }: DashboardProps) {
                 </button>
             </div>
         </div>
-    </form>
+    </form >
             </Modal >
 
             <Modal isOpen={isUploadModalOpen} onClose={() => setIsUploadModalOpen(false)} title="Upload File">
