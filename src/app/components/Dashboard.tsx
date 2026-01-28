@@ -32,6 +32,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 import { Folder, FileStr } from '@/lib/types';
 import * as api from '@/lib/api';
@@ -261,10 +262,13 @@ export default function Dashboard({ role }: DashboardProps) {
             <div className="w-64 bg-white border-r border-gray-100 flex flex-col hidden md:flex p-6">
                 {/* Logo */}
                 <div className="flex items-center gap-3 mb-10 px-2">
-                    <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white">
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                        </svg>
+                    <div className="relative w-8 h-8">
+                        <Image
+                            src="/logo.png"
+                            alt="Logo"
+                            fill
+                            className="object-contain"
+                        />
                     </div>
                     <h1 className="text-xl font-bold text-gray-800 tracking-tight">aosu Privacy</h1>
                 </div>
@@ -344,127 +348,115 @@ export default function Dashboard({ role }: DashboardProps) {
             <div className="flex-1 flex flex-col overflow-hidden bg-gray-50">
                 {/* Mobile Header */}
                 <header className="md:hidden bg-white border-b border-gray-100 p-4 flex items-center justify-between">
-                    <h1 className="text-lg font-bold text-gray-800">aosu Privacy</h1>
+                    <div className="flex items-center gap-2">
+                        <div className="relative w-6 h-6">
+                            <Image src="/logo.png" alt="Logo" fill className="object-contain" />
+                        </div>
+                        <h1 className="text-lg font-bold text-gray-800">aosu Privacy</h1>
+                    </div>
                 </header>
 
                 <main className="flex-1 overflow-auto p-8">
-                    {/* Header: Search & Breadcrumbs */}
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
-                        <div className="flex bg-white rounded-2xl px-5 py-3 shadow-sm border border-gray-100/50 w-full max-w-md items-center">
-                            <svg className="w-5 h-5 text-gray-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                            <input type="text" placeholder="Search" className="bg-transparent border-none outline-none text-sm w-full text-gray-600 placeholder-gray-400" />
-                            <svg className="w-5 h-5 text-gray-400 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
-                        </div>
-
-                        <div className="flex items-center gap-4">
-                            {/* Optional Info Box could go here like in reference */}
-                        </div>
-                    </div>
-
-                    {/* Quick Access (Folders) */}
-                    <div className="mb-10">
-                        <h2 className="text-lg font-bold text-gray-800 mb-6">Quick Access</h2>
-                        {folders.length > 0 ? (
-                            <DndContext
-                                sensors={sensors}
-                                collisionDetection={closestCenter}
-                                onDragEnd={handleDragEnd}
+                    {/* Header: Breadcrumbs (Search Removed) */}
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+                        <nav className="flex items-center flex-wrap gap-2 text-lg text-gray-800 font-bold">
+                            <button
+                                onClick={() => { setCurrentFolderId(null); setBreadcrumbs([]); }}
+                                className={`hover:text-blue-600 transition-colors ${!currentFolderId ? 'text-gray-900' : 'text-gray-400 font-medium'}`}
                             >
-                                <SortableContext
-                                    items={folders.map(f => f.id)}
-                                    strategy={rectSortingStrategy}
-                                >
-                                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-6">
-                                        {folders.map((folder) => (
-                                            <SortableFolderItem
-                                                key={folder.id}
-                                                folder={folder}
-                                                role={role}
-                                                onOpen={handleOpenFolder}
-                                                onDelete={handleDeleteFolder}
-                                            />
-                                        ))}
-                                    </div>
-                                </SortableContext>
-                            </DndContext>
-                        ) : (
-                            <div className="text-gray-400 text-sm italic">No folders found.</div>
-                        )}
+                                Repository
+                            </button>
+                            {breadcrumbs.length > 0 && <span className="text-gray-300">/</span>}
+                            {breadcrumbs.map((crumb, idx) => (
+                                <div key={crumb.id} className="flex items-center">
+                                    <button
+                                        onClick={() => handleNavigateUp(idx)}
+                                        className={`hover:text-blue-600 transition-colors ${idx === breadcrumbs.length - 1 ? 'text-gray-900' : 'text-gray-400 font-medium'}`}
+                                    >
+                                        {crumb.name}
+                                    </button>
+                                    {idx < breadcrumbs.length - 1 && <ChevronRight className="w-5 h-5 mx-1 text-gray-300" />}
+                                </div>
+                            ))}
+                        </nav>
                     </div>
 
-                    {/* Recents (Files) */}
-                    {currentFolderId && (
-                        <div>
-                            <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-lg font-bold text-gray-800">Recents</h2>
-                                <div className="flex gap-2">
-                                    <button className="p-2 rounded-lg hover:bg-white transition-colors text-gray-400"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg></button>
-                                    <button className="p-2 rounded-lg bg-blue-100 text-blue-600"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg></button>
+                    {/* Recents (Files) - Always Visible */}
+                    <div>
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-lg font-bold text-gray-800">Recents</h2>
+                        </div>
+
+                        {/* Table Header */}
+                        <div className="grid grid-cols-12 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4 px-6">
+                            <div className="col-span-6">Name</div>
+                            <div className="col-span-3 text-right">Modified</div>
+                            <div className="col-span-3 text-right">Size</div>
+                        </div>
+
+                        <div className="bg-white rounded-3xl shadow-sm border border-gray-100/50 overflow-hidden">
+                            {files.length === 0 ? (
+                                <div className="p-12 text-center text-gray-400 flex flex-col items-center">
+                                    <FileText className="w-12 h-12 text-gray-200 mb-3" />
+                                    <p>No files in this folder.</p>
                                 </div>
-                            </div>
+                            ) : (
+                                <ul className="divide-y divide-gray-50">
+                                    {files.map((file) => (
+                                        <li key={file.id} className="px-6 py-4 hover:bg-gray-50/50 flex items-center justify-between group transition-colors">
+                                            <div className="flex-1 min-w-0 grid grid-cols-12 items-center">
 
-                            {/* Table Header look-alike */}
-                            <div className="grid grid-cols-12 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4 px-6">
-                                <div className="col-span-6">Name</div>
-                                <div className="col-span-3 text-right">Modified</div>
-                                <div className="col-span-3 text-right">Size</div>
-                            </div>
-
-                            <div className="bg-white rounded-3xl shadow-sm border border-gray-100/50 overflow-hidden">
-                                {files.length === 0 ? (
-                                    <div className="p-12 text-center text-gray-400 flex flex-col items-center">
-                                        <FileText className="w-12 h-12 text-gray-200 mb-3" />
-                                        <p>No files in this folder.</p>
-                                    </div>
-                                ) : (
-                                    <ul className="divide-y divide-gray-50">
-                                        {files.map((file) => (
-                                            <li key={file.id} className="px-6 py-4 hover:bg-gray-50/50 flex items-center justify-between group transition-colors">
-                                                <div className="flex-1 min-w-0 grid grid-cols-12 items-center">
-
-                                                    {/* Name Col */}
-                                                    <div className="col-span-6 flex items-center pr-6">
-                                                        <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl mr-4">
-                                                            {getFileIcon(file.name)}
-                                                        </div>
-                                                        <div className="min-w-0">
-                                                            <a
-                                                                href={getFileUrl(file)}
-                                                                target="_blank"
-                                                                rel="noreferrer"
-                                                                className="text-sm font-bold text-gray-700 hover:text-blue-600 transition-colors block truncate"
-                                                            >
-                                                                {file.name}
-                                                            </a>
-                                                            {/* Inline Remark */}
-                                                            {file.remark && (
-                                                                <span className="inline-block mt-1 px-2 py-0.5 bg-[#FFF5F2] text-orange-600 text-[10px] font-bold rounded border border-[#FFE3DC]">
-                                                                    {file.remark}
-                                                                </span>
-                                                            )}
-                                                        </div>
+                                                {/* Name Col */}
+                                                <div className="col-span-6 flex items-center pr-6">
+                                                    <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl mr-4">
+                                                        {getFileIcon(file.name)}
                                                     </div>
-
-                                                    {/* Modified Col */}
-                                                    <div className="col-span-3 text-right text-xs text-gray-500 font-medium">
-                                                        {new Date(file.uploadDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                                                    </div>
-
-                                                    {/* Size Col (Placeholder) & Actions */}
-                                                    <div className="col-span-3 flex items-center justify-end gap-4">
-                                                        <span className="text-xs text-gray-500 font-bold">-- MB</span>
-                                                        <button className="text-gray-300 hover:text-gray-500">
-                                                            <MoreVertical className="w-4 h-4" />
-                                                        </button>
+                                                    <div className="min-w-0">
+                                                        <a
+                                                            href={getFileUrl(file)}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                            className="text-sm font-bold text-gray-700 hover:text-blue-600 transition-colors block truncate"
+                                                        >
+                                                            {file.name}
+                                                        </a>
+                                                        {/* Inline Remark */}
+                                                        {file.remark && (
+                                                            <span className="inline-block mt-1 px-2 py-0.5 bg-[#FFF5F2] text-orange-600 text-[10px] font-bold rounded border border-[#FFE3DC]">
+                                                                {file.remark}
+                                                            </span>
+                                                        )}
                                                     </div>
                                                 </div>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                )}
-                            </div>
+
+                                                {/* Modified Col */}
+                                                <div className="col-span-3 text-right text-xs text-gray-500 font-medium">
+                                                    {new Date(file.uploadDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                </div>
+
+                                                {/* Actions Col */}
+                                                <div className="col-span-3 flex items-center justify-end gap-4">
+                                                    <span className="text-xs text-gray-500 font-bold">-- MB</span>
+                                                    {role === 'admin' && (
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                if (confirm('Delete file?')) handleDeleteFile(file.id);
+                                                            }}
+                                                            className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
+                                                            title="Delete"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
                         </div>
-                    )}
+                    </div>
                 </main>
             </div>
 
