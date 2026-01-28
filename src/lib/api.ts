@@ -39,16 +39,16 @@ export const deleteFolder = async (id: string) => {
     return res.json();
 };
 
-export const fetchFiles = async (folderId: string) => {
-    const params = new URLSearchParams({ folderId });
+export const fetchFiles = async (folderId: string | null) => {
+    const params = new URLSearchParams({ folderId: folderId || 'null' });
     const res = await fetch(`/api/files?${params.toString()}`);
     if (!res.ok) throw new Error('Failed to fetch files');
     return res.json() as Promise<FileStr[]>;
 };
 
-export const uploadFile = async (folderId: string, file: File, remark: string) => {
+export const uploadFile = async (folderId: string | null, file: File, remark: string) => {
     const formData = new FormData();
-    formData.append('folderId', folderId);
+    formData.append('folderId', folderId || 'null');
     formData.append('file', file);
     formData.append('remark', remark);
 

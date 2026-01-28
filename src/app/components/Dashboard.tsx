@@ -121,12 +121,9 @@ export default function Dashboard({ role }: DashboardProps) {
             const foldersData = await api.fetchFolders(currentFolderId);
             setFolders(foldersData);
 
-            if (currentFolderId) {
-                const filesData = await api.fetchFiles(currentFolderId);
-                setFiles(filesData);
-            } else {
-                setFiles([]);
-            }
+            // Always fetch files (handles null for root)
+            const filesData = await api.fetchFiles(currentFolderId);
+            setFiles(filesData);
         } catch (err) {
             console.error(err);
         }
@@ -168,7 +165,7 @@ export default function Dashboard({ role }: DashboardProps) {
 
     const handleUploadFile = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!uploadFile || !currentFolderId) return;
+        if (!uploadFile) return;
         try {
             await api.uploadFile(currentFolderId, uploadFile, uploadRemark);
             setUploadFile(null);
