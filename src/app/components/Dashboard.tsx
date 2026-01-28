@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import {
     Folder as FolderIcon,
     FileText,
+    FileSpreadsheet,
     Plus,
     Upload,
     Trash2,
@@ -248,6 +249,23 @@ export default function Dashboard({ role }: DashboardProps) {
         return file.path;
     };
 
+    const getFileIcon = (filename: string) => {
+        const ext = filename.split('.').pop()?.toLowerCase();
+        switch (ext) {
+            case 'pdf': return <FileText className="w-5 h-5 text-red-500" />;
+            case 'xlsx':
+            case 'xls': return <FileSpreadsheet className="w-5 h-5 text-green-600" />;
+            case 'docx':
+            case 'doc': return <FileText className="w-5 h-5 text-blue-600" />;
+            case 'pptx':
+            case 'ppt': return <FileText className="w-5 h-5 text-orange-500" />; // using FileText as placeholder if Presentation icon not imported, or import it
+            case 'jpg':
+            case 'jpeg':
+            case 'png': return <FileText className="w-5 h-5 text-purple-600" />; // Image icon would be better
+            default: return <FileText className="w-5 h-5 text-gray-400" />;
+        }
+    };
+
     return (
         <div className="flex h-screen bg-gray-50">
             {/* Sidebar */}
@@ -415,9 +433,14 @@ export default function Dashboard({ role }: DashboardProps) {
                                                             href={getFileUrl(file)}
                                                             target="_blank"
                                                             rel="noreferrer"
-                                                            className="text-base font-semibold text-gray-700 hover:text-blue-600 truncate mr-3 transition-colors"
+                                                            className="flex items-center group-hover:bg-blue-50 rounded-lg p-2 -ml-2 transition-colors mr-3"
                                                         >
-                                                            {file.name}
+                                                            <div className="mr-3 p-1.5 bg-gray-100 rounded-md group-hover:bg-white transition-colors">
+                                                                {getFileIcon(file.name)}
+                                                            </div>
+                                                            <span className="text-base font-bold text-gray-800 group-hover:text-blue-600 underline decoration-gray-300 group-hover:decoration-blue-400 underline-offset-4 decoration-2 transition-all">
+                                                                {file.name}
+                                                            </span>
                                                         </a>
                                                         {file.remark && (
                                                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-600 border border-amber-100/50">
@@ -427,17 +450,17 @@ export default function Dashboard({ role }: DashboardProps) {
                                                     </div>
 
                                                     {file.remark ? (
-                                                        <div className="mt-1.5 mb-2">
+                                                        <div className="mt-1.5 mb-2 ml-14">
                                                             <span className="inline-block px-3 py-1 bg-orange-50 text-orange-700 text-sm font-medium rounded-lg border border-orange-100">
                                                                 {file.remark}
                                                             </span>
                                                         </div>
                                                     ) : null}
 
-                                                    <div className="flex items-center text-xs text-gray-400 font-medium">
+                                                    <div className="flex items-center text-xs text-gray-400 font-medium ml-14">
                                                         <span>{new Date(file.uploadDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</span>
                                                         <span className="mx-2">•</span>
-                                                        <span className="uppercase">PDF</span>
+                                                        <span className="uppercase">{file.name.split('.').pop()}</span>
                                                     </div>
                                                 </div>
 
