@@ -395,7 +395,7 @@ export default function Dashboard({ role }: DashboardProps) {
                         </div>
 
                         <div className="bg-white rounded-3xl shadow-sm border border-gray-100/50 overflow-hidden">
-                            {files.length === 0 ? (
+                            {files.length === 0 && folders.length === 0 ? (
                                 <div className="p-12 text-center text-gray-400 flex flex-col items-center">
                                     <FileText className="w-12 h-12 text-gray-200 mb-3" />
                                     <p>No files in this folder.</p>
