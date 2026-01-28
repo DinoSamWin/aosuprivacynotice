@@ -418,7 +418,11 @@ export default function Dashboard({ role }: DashboardProps) {
                                                     </div>
 
                                                     {file.remark ? (
-                                                        <p className="text-sm text-gray-500 mb-2 line-clamp-1">{file.remark}</p>
+                                                        <div className="mt-1.5 mb-2">
+                                                            <span className="inline-block px-3 py-1 bg-orange-50 text-orange-700 text-sm font-medium rounded-lg border border-orange-100">
+                                                                {file.remark}
+                                                            </span>
+                                                        </div>
                                                     ) : null}
 
                                                     <div className="flex items-center text-xs text-gray-400 font-medium">
