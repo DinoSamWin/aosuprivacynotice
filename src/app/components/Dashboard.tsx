@@ -75,7 +75,7 @@ function SortableFolderItem({ folder, role, onOpen, onDelete }: {
                 <FolderIcon className="w-10 h-10 fill-current" />
             </div>
 
-            <h3 className="font-bold text-gray-700 text-center text-sm truncate w-full px-2 group-hover:text-blue-600 transition-colors">
+            <h3 className="font-bold text-blue-600 text-center text-sm truncate w-full px-2 group-hover:text-blue-700 transition-colors">
                 {folder.name}
             </h3>
             <p className="text-xs text-gray-400 font-medium mt-1">10 files</p>
@@ -381,6 +381,35 @@ export default function Dashboard({ role }: DashboardProps) {
                         </nav>
                     </div>
 
+                    {/* Folders Grid - Always Visible if folders exist */}
+                    {folders.length > 0 && (
+                        <div className="mb-10">
+                            <h2 className="text-lg font-bold text-gray-800 mb-6">Folders</h2>
+                            <DndContext
+                                sensors={sensors}
+                                collisionDetection={closestCenter}
+                                onDragEnd={handleDragEnd}
+                            >
+                                <SortableContext
+                                    items={folders.map(f => f.id)}
+                                    strategy={rectSortingStrategy}
+                                >
+                                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                                        {folders.map((folder) => (
+                                            <SortableFolderItem
+                                                key={folder.id}
+                                                folder={folder}
+                                                role={role}
+                                                onOpen={handleOpenFolder}
+                                                onDelete={handleDeleteFolder}
+                                            />
+                                        ))}
+                                    </div>
+                                </SortableContext>
+                            </DndContext>
+                        </div>
+                    )}
+
                     {/* Recents (Files) - Always Visible */}
                     <div>
                         <div className="flex items-center justify-between mb-6">
@@ -402,47 +431,6 @@ export default function Dashboard({ role }: DashboardProps) {
                                 </div>
                             ) : (
                                 <ul className="divide-y divide-gray-50">
-                                    {/* Render Folders First */}
-                                    {folders.map((folder) => (
-                                        <li key={folder.id} className="px-6 py-4 hover:bg-gray-50/50 flex items-center justify-between group transition-colors cursor-pointer" onClick={() => handleOpenFolder(folder.id, folder.name)}>
-                                            <div className="flex-1 min-w-0 grid grid-cols-12 items-center">
-                                                {/* Name Col */}
-                                                <div className="col-span-6 flex items-center pr-6">
-                                                    <div className="p-2.5 bg-yellow-50 text-yellow-600 rounded-xl mr-4">
-                                                        <FolderIcon className="w-5 h-5 fill-current" />
-                                                    </div>
-                                                    <div className="min-w-0">
-                                                        <span className="text-sm font-bold text-gray-700 hover:text-blue-600 transition-colors block truncate">
-                                                            {folder.name}
-                                                        </span>
-                                                    </div>
-                                                </div>
-
-                                                {/* Modified Col (Placeholder for folders if no date) */}
-                                                <div className="col-span-3 text-right text-xs text-gray-500 font-medium">
-                                                    -
-                                                </div>
-
-                                                {/* Actions Col */}
-                                                <div className="col-span-3 flex items-center justify-end gap-4">
-                                                    <span className="text-xs text-gray-500 font-bold">-</span>
-                                                    {role === 'admin' && (
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation(); // Prevent navigation
-                                                                if (confirm('Delete folder and all its contents?')) handleDeleteFolder(folder.id);
-                                                            }}
-                                                            className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
-                                                            title="Delete Folder"
-                                                        >
-                                                            <Trash2 className="w-4 h-4" />
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </li>
-                                    ))}
-
                                     {/* Render Files */}
                                     {files.map((file) => (
                                         <li key={file.id} className="px-6 py-4 hover:bg-gray-50/50 flex items-center justify-between group transition-colors">
