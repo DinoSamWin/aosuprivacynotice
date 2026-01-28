@@ -239,6 +239,15 @@ export default function Dashboard({ role }: DashboardProps) {
         });
     };
 
+    const getFileUrl = (file: FileStr) => {
+        const ext = file.name.split('.').pop()?.toLowerCase();
+        const officeExts = ['xlsx', 'xls', 'docx', 'doc', 'pptx', 'ppt'];
+        if (ext && officeExts.includes(ext)) {
+            return `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(file.path)}`;
+        }
+        return file.path;
+    };
+
     return (
         <div className="flex h-screen bg-gray-50">
             {/* Sidebar */}
@@ -403,7 +412,7 @@ export default function Dashboard({ role }: DashboardProps) {
                                                 <div className="flex-1 min-w-0 pr-6">
                                                     <div className="flex items-center mb-1">
                                                         <a
-                                                            href={file.path}
+                                                            href={getFileUrl(file)}
                                                             target="_blank"
                                                             rel="noreferrer"
                                                             className="text-base font-semibold text-gray-700 hover:text-blue-600 truncate mr-3 transition-colors"
@@ -434,7 +443,7 @@ export default function Dashboard({ role }: DashboardProps) {
 
                                                 <div className="flex items-center">
                                                     <a
-                                                        href={file.path}
+                                                        href={getFileUrl(file)}
                                                         target="_blank"
                                                         rel="noreferrer"
                                                         className="p-2 text-gray-300 hover:text-blue-600 transition-colors mr-2"
