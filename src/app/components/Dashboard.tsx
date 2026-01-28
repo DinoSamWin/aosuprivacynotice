@@ -347,124 +347,129 @@ export default function Dashboard({ role }: DashboardProps) {
                     <h1 className="text-lg font-bold text-gray-800">aosu Privacy</h1>
                 </header>
 
-                <main className="flex-1 overflow-auto p-8">
-                    {/* Header: Search & Breadcrumbs */}
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
-                        <div className="flex bg-white rounded-2xl px-5 py-3 shadow-sm border border-gray-100/50 w-full max-w-md items-center">
-                            <svg className="w-5 h-5 text-gray-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                            <input type="text" placeholder="Search" className="bg-transparent border-none outline-none text-sm w-full text-gray-600 placeholder-gray-400" />
-                            <svg className="w-5 h-5 text-gray-400 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
-                        </div>
+                <main className="flex-1 overflow-auto bg-gray-50">
+                    {/* Decorative Header */}
+                    <div className="h-48 bg-gradient-to-r from-blue-600 to-indigo-600 w-full relative overflow-hidden">
+                        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
+                        <div className="absolute bottom-0 left-0 p-8 w-full bg-gradient-to-t from-gray-50 to-transparent h-20"></div>
 
-                        <div className="flex items-center gap-4">
-                            {/* Optional Info Box could go here like in reference */}
-                        </div>
-                    </div>
-
-                    {/* Quick Access (Folders) */}
-                    <div className="mb-10">
-                        <h2 className="text-lg font-bold text-gray-800 mb-6">Quick Access</h2>
-                        {folders.length > 0 ? (
-                            <DndContext
-                                sensors={sensors}
-                                collisionDetection={closestCenter}
-                                onDragEnd={handleDragEnd}
-                            >
-                                <SortableContext
-                                    items={folders.map(f => f.id)}
-                                    strategy={rectSortingStrategy}
+                        <div className="absolute bottom-6 left-8 z-10">
+                            {/* Breadcrumbs - Integrated into Header */}
+                            <nav className="flex items-center flex-wrap gap-2 text-sm text-white/90">
+                                <button
+                                    onClick={() => { setCurrentFolderId(null); setBreadcrumbs([]); }}
+                                    className={`hover:text-white font-medium transition-colors ${!currentFolderId ? 'text-white font-bold' : ''}`}
                                 >
-                                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-6">
-                                        {folders.map((folder) => (
-                                            <SortableFolderItem
-                                                key={folder.id}
-                                                folder={folder}
-                                                role={role}
-                                                onOpen={handleOpenFolder}
-                                                onDelete={handleDeleteFolder}
-                                            />
-                                        ))}
+                                    Repository
+                                </button>
+                                {breadcrumbs.length > 0 && <span className="text-white/60">/</span>}
+                                {breadcrumbs.map((crumb, idx) => (
+                                    <div key={crumb.id} className="flex items-center">
+                                        <button
+                                            onClick={() => handleNavigateUp(idx)}
+                                            className={`hover:text-white transition-colors ${idx === breadcrumbs.length - 1 ? 'font-bold text-white' : ''}`}
+                                        >
+                                            {crumb.name}
+                                        </button>
+                                        {idx < breadcrumbs.length - 1 && <ChevronRight className="w-4 h-4 mx-1 text-white/60" />}
                                     </div>
-                                </SortableContext>
-                            </DndContext>
-                        ) : (
-                            <div className="text-gray-400 text-sm italic">No folders found.</div>
-                        )}
+                                ))}
+                            </nav>
+                        </div>
                     </div>
 
-                    {/* Recents (Files) */}
-                    {currentFolderId && (
-                        <div>
-                            <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-lg font-bold text-gray-800">Recents</h2>
-                                <div className="flex gap-2">
-                                    <button className="p-2 rounded-lg hover:bg-white transition-colors text-gray-400"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg></button>
-                                    <button className="p-2 rounded-lg bg-blue-100 text-blue-600"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg></button>
+                    <div className="p-8 -mt-6 relative z-10">
+                        {/* Files Section */}
+                        {currentFolderId && (
+                            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                <div className="flex items-center justify-between mb-6 px-2">
+                                    <h2 className="text-xl font-bold text-gray-800">Files</h2>
                                 </div>
-                            </div>
 
-                            {/* Table Header look-alike */}
-                            <div className="grid grid-cols-12 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4 px-6">
-                                <div className="col-span-6">Name</div>
-                                <div className="col-span-3 text-right">Modified</div>
-                                <div className="col-span-3 text-right">Size</div>
-                            </div>
+                                {/* Table Header */}
+                                <div className="grid grid-cols-12 text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-6">
+                                    <div className="col-span-6">Name</div>
+                                    <div className="col-span-3 text-right">Modified</div>
+                                    <div className="col-span-3 text-right">Actions</div>
+                                </div>
 
-                            <div className="bg-white rounded-3xl shadow-sm border border-gray-100/50 overflow-hidden">
-                                {files.length === 0 ? (
-                                    <div className="p-12 text-center text-gray-400 flex flex-col items-center">
-                                        <FileText className="w-12 h-12 text-gray-200 mb-3" />
-                                        <p>No files in this folder.</p>
-                                    </div>
-                                ) : (
-                                    <ul className="divide-y divide-gray-50">
-                                        {files.map((file) => (
-                                            <li key={file.id} className="px-6 py-4 hover:bg-gray-50/50 flex items-center justify-between group transition-colors">
-                                                <div className="flex-1 min-w-0 grid grid-cols-12 items-center">
+                                <div className="bg-white rounded-[2rem] shadow-xl shadow-blue-900/5 border border-white overflow-hidden ring-1 ring-gray-100">
+                                    {files.length === 0 ? (
+                                        <div className="p-16 text-center text-gray-400 flex flex-col items-center justify-center">
+                                            <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                                                <FileText className="w-10 h-10 text-gray-300" />
+                                            </div>
+                                            <p className="text-lg font-medium text-gray-500">No files here yet</p>
+                                            {role === 'admin' && (
+                                                <button onClick={() => setIsUploadModalOpen(true)} className="mt-4 text-blue-600 hover:underline font-medium">
+                                                    Upload a file
+                                                </button>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <ul className="divide-y divide-gray-50">
+                                            {files.map((file) => (
+                                                <li key={file.id} className="px-6 py-5 hover:bg-blue-50/50 flex items-center justify-between group transition-all duration-200">
+                                                    <div className="flex-1 min-w-0 grid grid-cols-12 items-center">
 
-                                                    {/* Name Col */}
-                                                    <div className="col-span-6 flex items-center pr-6">
-                                                        <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl mr-4">
-                                                            {getFileIcon(file.name)}
+                                                        {/* Name Col */}
+                                                        <div className="col-span-6 flex items-center pr-6">
+                                                            <div className="p-3 bg-blue-50 text-blue-600 rounded-2xl mr-4 shadow-sm group-hover:scale-110 transition-transform duration-300">
+                                                                {getFileIcon(file.name)}
+                                                            </div>
+                                                            <div className="min-w-0 flex-1">
+                                                                <a
+                                                                    href={getFileUrl(file)}
+                                                                    target="_blank"
+                                                                    rel="noreferrer"
+                                                                    className="text-base font-bold text-gray-700 hover:text-blue-600 transition-colors block truncate"
+                                                                >
+                                                                    {file.name}
+                                                                </a>
+                                                                {/* Inline Remark */}
+                                                                {file.remark && (
+                                                                    <div className="mt-1.5 flex items-start">
+                                                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-bold bg-orange-50 text-orange-600 border border-orange-100/50">
+                                                                            {file.remark}
+                                                                        </span>
+                                                                        {/* Hidden copy for clipboard maybe? */}
+                                                                    </div>
+                                                                )}
+                                                            </div>
                                                         </div>
-                                                        <div className="min-w-0">
-                                                            <a
-                                                                href={getFileUrl(file)}
-                                                                target="_blank"
-                                                                rel="noreferrer"
-                                                                className="text-sm font-bold text-gray-700 hover:text-blue-600 transition-colors block truncate"
-                                                            >
-                                                                {file.name}
-                                                            </a>
-                                                            {/* Inline Remark */}
-                                                            {file.remark && (
-                                                                <span className="inline-block mt-1 px-2 py-0.5 bg-[#FFF5F2] text-orange-600 text-[10px] font-bold rounded border border-[#FFE3DC]">
-                                                                    {file.remark}
-                                                                </span>
+
+                                                        {/* Modified Col */}
+                                                        <div className="col-span-3 text-right text-sm text-gray-500 font-medium font-mono">
+                                                            {new Date(file.uploadDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                        </div>
+
+                                                        {/* Actions Col */}
+                                                        <div className="col-span-3 flex items-center justify-end gap-3">
+                                                            <span className="text-xs text-gray-400 font-bold px-3 py-1 bg-gray-50 rounded-lg group-hover:bg-white transition-colors">-- MB</span>
+
+                                                            {role === 'admin' && (
+                                                                <button
+                                                                    onClick={() => {
+                                                                        if (confirm('Are you sure you want to delete this file?')) {
+                                                                            handleDeleteFile(file.id);
+                                                                        }
+                                                                    }}
+                                                                    className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all opacity-0 group-hover:opacity-100"
+                                                                    title="Delete File"
+                                                                >
+                                                                    <Trash2 className="w-5 h-5" />
+                                                                </button>
                                                             )}
                                                         </div>
                                                     </div>
-
-                                                    {/* Modified Col */}
-                                                    <div className="col-span-3 text-right text-xs text-gray-500 font-medium">
-                                                        {new Date(file.uploadDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                                                    </div>
-
-                                                    {/* Size Col (Placeholder) & Actions */}
-                                                    <div className="col-span-3 flex items-center justify-end gap-4">
-                                                        <span className="text-xs text-gray-500 font-bold">-- MB</span>
-                                                        <button className="text-gray-300 hover:text-gray-500">
-                                                            <MoreVertical className="w-4 h-4" />
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                )}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
+                                </div>
                             </div>
-                        </div>
-                    )}
+                        )}
+                    </div>
                 </main>
             </div>
 
