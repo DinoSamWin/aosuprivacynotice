@@ -41,11 +41,12 @@ interface DashboardProps {
     role: 'admin' | 'guest';
 }
 
+// Sortable Folder Item - Quick Access Style
 function SortableFolderItem({ folder, role, onOpen, onDelete }: {
     folder: Folder;
     role: 'admin' | 'guest';
-    onOpen: (id: string, name: string) => void;
-    onDelete: (id: string) => void;
+    onOpen: (id: string) => void;
+    onDelete: (id: string, e: React.MouseEvent) => void;
 }) {
     const {
         attributes,
@@ -53,13 +54,11 @@ function SortableFolderItem({ folder, role, onOpen, onDelete }: {
         setNodeRef,
         transform,
         transition,
-        isDragging
-    } = useSortable({ id: folder.id, disabled: role !== 'admin' });
+    } = useSortable({ id: folder.id });
 
     const style = {
-        transform: CSS.Transform.toString(transform),
+        transform: CSS.Translate.toString(transform),
         transition,
-        opacity: isDragging ? 0.5 : 1,
     };
 
     return (
@@ -68,32 +67,22 @@ function SortableFolderItem({ folder, role, onOpen, onDelete }: {
             style={style}
             {...attributes}
             {...listeners}
-            className={`
-        group relative p-6 bg-white rounded-2xl border border-gray-50 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] 
-        hover:shadow-[0_8px_20px_-6px_rgba(6,81,237,0.15)] transition-all cursor-pointer select-none
-        flex flex-col items-center justify-center aspect-[4/3]
-        ${role === 'admin' ? 'active:cursor-grabbing' : ''}
-      `}
-            onClick={(e) => {
-                if (isDragging) return;
-                onOpen(folder.id, folder.name);
-            }}
+            onClick={() => onOpen(folder.id)}
+            className="group relative bg-white aspect-square rounded-[2rem] p-6 shadow-sm hover:shadow-xl hover:shadow-blue-500/10 border border-gray-100 flex flex-col items-center justify-center cursor-pointer transition-all duration-300 hover:-translate-y-1"
         >
-            <div className="mb-4 relative">
-                <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-500 group-hover:bg-blue-100 group-hover:scale-110 transition-all duration-300">
-                    <FolderIcon className="w-8 h-8" strokeWidth={1.5} />
-                </div>
+            <div className="w-20 h-20 bg-gray-50 rounded-[1.5rem] flex items-center justify-center text-gray-400 group-hover:bg-blue-50 group-hover:text-blue-500 transition-colors mb-4">
+                <FolderIcon className="w-10 h-10 fill-current" />
             </div>
-            <span className="font-semibold text-gray-800 text-center line-clamp-2 px-2 text-sm">{folder.name}</span>
-            <p className="text-xs text-gray-400 mt-1">Folder</p>
+
+            <h3 className="font-bold text-gray-700 text-center text-sm truncate w-full px-2 group-hover:text-blue-600 transition-colors">
+                {folder.name}
+            </h3>
+            <p className="text-xs text-gray-400 font-medium mt-1">10 files</p>
 
             {role === 'admin' && (
                 <button
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        if (confirm('Delete this folder and all contents?')) onDelete(folder.id);
-                    }}
-                    className="absolute top-3 right-3 p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-full opacity-0 group-hover:opacity-100 transition-all"
+                    onClick={(e) => onDelete(folder.id, e)}
+                    className="absolute top-4 right-4 p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-all opacity-0 group-hover:opacity-100"
                 >
                     <Trash2 className="w-4 h-4" />
                 </button>
@@ -268,44 +257,74 @@ export default function Dashboard({ role }: DashboardProps) {
 
     return (
         <div className="flex h-screen bg-gray-50">
-            {/* Sidebar */}
-            <div className="w-64 bg-white border-r border-gray-100 flex flex-col hidden md:flex">
-                <div className="p-6 border-b border-gray-50">
-                    <h1 className="text-xl font-bold text-gray-800">aosu Privacy</h1>
+            {/* Sidebar - INFINITE Style */}
+            <div className="w-64 bg-white border-r border-gray-100 flex flex-col hidden md:flex p-6">
+                {/* Logo */}
+                <div className="flex items-center gap-3 mb-10 px-2">
+                    <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white">
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                        </svg>
+                    </div>
+                    <h1 className="text-xl font-bold text-gray-800 tracking-tight">aosu Privacy</h1>
                 </div>
 
-                <nav className="flex-1 p-4 space-y-1">
+                {/* Primary Action Button */}
+                {role === 'admin' && (
+                    <div className="mb-8">
+                        <button
+                            onClick={() => setIsUploadModalOpen(true)}
+                            className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-2xl py-3.5 px-4 font-semibold text-sm flex items-center justify-center shadow-lg shadow-blue-200 transition-all hover:shadow-blue-300 active:scale-95"
+                        >
+                            Add New File
+                            <div className="ml-3 bg-white/20 rounded-lg p-0.5">
+                                <Plus className="w-4 h-4" />
+                            </div>
+                        </button>
+                    </div>
+                )}
+
+                <nav className="flex-1 space-y-2">
                     <button
                         onClick={() => { setCurrentFolderId(null); setBreadcrumbs([]); }}
-                        className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-colors ${!currentFolderId ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50'}`}
+                        className={`w-full flex items-center px-4 py-3.5 text-sm font-semibold rounded-2xl transition-all ${!currentFolderId ? 'bg-blue-50 text-blue-600' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}
                     >
-                        <FolderIcon className="w-5 h-5 mr-3" />
-                        All Documents
+                        <FolderIcon className={`w-5 h-5 mr-4 ${!currentFolderId ? 'text-blue-600' : 'text-gray-400'}`} />
+                        Home
                     </button>
-                    {/* Placeholder links for visual completeness */}
-                    <div className="text-xs font-semibold text-gray-400 mt-6 mb-2 px-4 uppercase tracking-wider">Manage</div>
+
+                    {currentFolderId && (
+                        <button
+                            className="w-full flex items-center px-4 py-3.5 text-sm font-semibold rounded-2xl bg-blue-50 text-blue-600 transition-all"
+                        >
+                            <FolderIcon className="w-5 h-5 mr-4 text-blue-600" />
+                            My Files
+                        </button>
+                    )}
+
                     {role === 'admin' && (
                         <>
-                            <button onClick={() => setIsCreateModalOpen(true)} className="w-full flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-xl hover:bg-gray-50 transition-colors">
-                                <Plus className="w-5 h-5 mr-3" />
+                            <button onClick={() => setIsCreateModalOpen(true)} className="w-full flex items-center px-4 py-3.5 text-sm font-semibold text-gray-500 rounded-2xl hover:text-gray-900 hover:bg-gray-50 transition-all">
+                                <Plus className="w-5 h-5 mr-4 text-gray-400" />
                                 New Folder
                             </button>
-                            <button onClick={() => setIsResetModalOpen(true)} className="w-full flex items-center px-4 py-3 text-sm font-medium text-red-600 rounded-xl hover:bg-red-50 transition-colors">
-                                <Trash2 className="w-5 h-5 mr-3" />
-                                Reset Data
+                            <button onClick={() => setIsResetModalOpen(true)} className="w-full flex items-center px-4 py-3.5 text-sm font-semibold text-gray-500 rounded-2xl hover:text-red-600 hover:bg-red-50 transition-all group">
+                                <Trash2 className="w-5 h-5 mr-4 text-gray-400 group-hover:text-red-500 transition-colors" />
+                                Trash
                             </button>
                         </>
                     )}
                 </nav>
 
-                <div className="p-4 border-t border-gray-50">
-                    <div className="flex items-center px-4 py-3">
-                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs uppercase mr-3">
-                            {role[0]}
+                {/* User Profile Mini */}
+                <div className="mt-auto pt-6 border-t border-gray-100">
+                    <div className="flex items-center px-2">
+                        <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden border-2 border-white shadow-sm mr-3">
+                            <span className="text-gray-500 font-bold text-sm uppercase">{role[0]}</span>
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900 capitalize">{role}</p>
-                            <p className="text-xs text-gray-500 truncate">Logged in</p>
+                            <p className="text-sm font-bold text-gray-900 capitalize">{role}</p>
+                            <p className="text-xs text-gray-400 truncate">Personal</p>
                         </div>
                         <button
                             onClick={() => {
@@ -313,7 +332,7 @@ export default function Dashboard({ role }: DashboardProps) {
                                 router.push('/login');
                                 router.refresh();
                             }}
-                            className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                            className="p-2 text-gray-400 hover:text-gray-600 transition-colors bg-gray-50 hover:bg-gray-100 rounded-lg"
                         >
                             <LogOut className="w-4 h-4" />
                         </button>
@@ -322,54 +341,30 @@ export default function Dashboard({ role }: DashboardProps) {
             </div>
 
             {/* Main Content */}
-            <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="flex-1 flex flex-col overflow-hidden bg-gray-50">
                 {/* Mobile Header */}
                 <header className="md:hidden bg-white border-b border-gray-100 p-4 flex items-center justify-between">
                     <h1 className="text-lg font-bold text-gray-800">aosu Privacy</h1>
-                    <div className="flex items-center space-x-2">
-                        {/* Mobile interactions could go here */}
-                    </div>
                 </header>
 
-                <main className="flex-1 overflow-auto p-6 md:p-8">
-                    {/* Top Bar with Breadcrumbs & Actions */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-                        <nav className="flex items-center flex-wrap gap-2 text-sm text-gray-600">
-                            <button
-                                onClick={() => { setCurrentFolderId(null); setBreadcrumbs([]); }}
-                                className={`hover:text-blue-600 font-medium transition-colors ${!currentFolderId ? 'text-gray-900 font-bold' : ''}`}
-                            >
-                                Repository
-                            </button>
-                            {breadcrumbs.length > 0 && <span className="text-gray-300">/</span>}
-                            {breadcrumbs.map((crumb, idx) => (
-                                <div key={crumb.id} className="flex items-center">
-                                    <button
-                                        onClick={() => handleNavigateUp(idx)}
-                                        className={`hover:text-blue-600 transition-colors ${idx === breadcrumbs.length - 1 ? 'font-bold text-gray-900' : ''}`}
-                                    >
-                                        {crumb.name}
-                                    </button>
-                                    {idx < breadcrumbs.length - 1 && <ChevronRight className="w-4 h-4 mx-1 text-gray-300" />}
-                                </div>
-                            ))}
-                        </nav>
+                <main className="flex-1 overflow-auto p-8">
+                    {/* Header: Search & Breadcrumbs */}
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+                        <div className="flex bg-white rounded-2xl px-5 py-3 shadow-sm border border-gray-100/50 w-full max-w-md items-center">
+                            <svg className="w-5 h-5 text-gray-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                            <input type="text" placeholder="Search" className="bg-transparent border-none outline-none text-sm w-full text-gray-600 placeholder-gray-400" />
+                            <svg className="w-5 h-5 text-gray-400 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
+                        </div>
 
-                        {role === 'admin' && currentFolderId && (
-                            <button
-                                onClick={() => setIsUploadModalOpen(true)}
-                                className="flex items-center px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-all shadow-md shadow-blue-200 active:transform active:scale-95"
-                            >
-                                <Upload className="w-4 h-4 mr-2" />
-                                Upload File
-                            </button>
-                        )}
+                        <div className="flex items-center gap-4">
+                            {/* Optional Info Box could go here like in reference */}
+                        </div>
                     </div>
 
-                    {/* Content */}
-                    <div className="space-y-8">
-                        {/* Folders */}
-                        {folders.length > 0 && (
+                    {/* Quick Access (Folders) */}
+                    <div className="mb-10">
+                        <h2 className="text-lg font-bold text-gray-800 mb-6">Quick Access</h2>
+                        {folders.length > 0 ? (
                             <DndContext
                                 sensors={sensors}
                                 collisionDetection={closestCenter}
@@ -379,7 +374,7 @@ export default function Dashboard({ role }: DashboardProps) {
                                     items={folders.map(f => f.id)}
                                     strategy={rectSortingStrategy}
                                 >
-                                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-6">
                                         {folders.map((folder) => (
                                             <SortableFolderItem
                                                 key={folder.id}
@@ -392,32 +387,30 @@ export default function Dashboard({ role }: DashboardProps) {
                                     </div>
                                 </SortableContext>
                             </DndContext>
+                        ) : (
+                            <div className="text-gray-400 text-sm italic">No folders found.</div>
                         )}
+                    </div>
 
-                        {/* Empty State for Root */}
-                        {folders.length === 0 && !currentFolderId && (
-                            <div className="text-center py-20">
-                                <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
-                                    <FolderIcon className="w-8 h-8 text-gray-400" />
+                    {/* Recents (Files) */}
+                    {currentFolderId && (
+                        <div>
+                            <div className="flex items-center justify-between mb-6">
+                                <h2 className="text-lg font-bold text-gray-800">Recents</h2>
+                                <div className="flex gap-2">
+                                    <button className="p-2 rounded-lg hover:bg-white transition-colors text-gray-400"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg></button>
+                                    <button className="p-2 rounded-lg bg-blue-100 text-blue-600"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg></button>
                                 </div>
-                                <h3 className="text-lg font-medium text-gray-900">Empty Repository</h3>
-                                <p className="text-gray-500 mt-1">Start by creating a folder.</p>
                             </div>
-                        )}
 
-                        {/* Files (Only in folders) */}
-                        {currentFolderId && (
-                            <div className="bg-white rounded-2xl border border-gray-50 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] overflow-hidden">
-                                <div className="px-8 py-5 border-b border-gray-50 flex items-center justify-between bg-white">
-                                    <h2 className="font-bold text-gray-800 flex items-center text-lg">
-                                        <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center mr-3">
-                                            <FileText className="w-4 h-4" />
-                                        </div>
-                                        Files
-                                    </h2>
-                                    <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">{files.length} items</span>
-                                </div>
+                            {/* Table Header look-alike */}
+                            <div className="grid grid-cols-12 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4 px-6">
+                                <div className="col-span-6">Name</div>
+                                <div className="col-span-3 text-right">Modified</div>
+                                <div className="col-span-3 text-right">Size</div>
+                            </div>
 
+                            <div className="bg-white rounded-3xl shadow-sm border border-gray-100/50 overflow-hidden">
                                 {files.length === 0 ? (
                                     <div className="p-12 text-center text-gray-400 flex flex-col items-center">
                                         <FileText className="w-12 h-12 text-gray-200 mb-3" />
@@ -426,92 +419,84 @@ export default function Dashboard({ role }: DashboardProps) {
                                 ) : (
                                     <ul className="divide-y divide-gray-50">
                                         {files.map((file) => (
-                                            <li key={file.id} className="px-8 py-5 hover:bg-gray-50/80 flex items-center justify-between group transition-colors">
-                                                <div className="flex-1 min-w-0 pr-6">
-                                                    <div className="flex items-center mb-2">
-                                                        <a
-                                                            href={getFileUrl(file)}
-                                                            target="_blank"
-                                                            rel="noreferrer"
-                                                            className="flex items-center group-hover:bg-blue-50/50 rounded-xl p-2 -ml-2 transition-all duration-200 mr-3"
-                                                        >
-                                                            <div className="mr-4 p-2 bg-gray-50 rounded-lg group-hover:bg-white group-hover:shadow-sm transition-all border border-gray-100/50 group-hover:border-blue-100">
-                                                                {getFileIcon(file.name)}
-                                                            </div>
-                                                            <span className="text-base font-bold text-gray-700 group-hover:text-blue-700 transition-colors">
+                                            <li key={file.id} className="px-6 py-4 hover:bg-gray-50/50 flex items-center justify-between group transition-colors">
+                                                <div className="flex-1 min-w-0 grid grid-cols-12 items-center">
+
+                                                    {/* Name Col */}
+                                                    <div className="col-span-6 flex items-center pr-6">
+                                                        <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl mr-4">
+                                                            {getFileIcon(file.name)}
+                                                        </div>
+                                                        <div className="min-w-0">
+                                                            <a
+                                                                href={getFileUrl(file)}
+                                                                target="_blank"
+                                                                rel="noreferrer"
+                                                                className="text-sm font-bold text-gray-700 hover:text-blue-600 transition-colors block truncate"
+                                                            >
                                                                 {file.name}
-                                                            </span>
-                                                        </a>
+                                                            </a>
+                                                            {/* Inline Remark */}
+                                                            {file.remark && (
+                                                                <span className="inline-block mt-1 px-2 py-0.5 bg-[#FFF5F2] text-orange-600 text-[10px] font-bold rounded border border-[#FFE3DC]">
+                                                                    {file.remark}
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                     </div>
 
-                                                    {file.remark ? (
-                                                        <div className="ml-[3.5rem] mb-4 mr-6">
-                                                            <div className="bg-[#FFF5F2] border border-[#FFE3DC] rounded-xl p-4 text-sm text-gray-700 leading-relaxed shadow-sm">
-                                                                {file.remark}
-                                                            </div>
-                                                        </div>
-                                                    ) : null}
-                                                </div>
+                                                    {/* Modified Col */}
+                                                    <div className="col-span-3 text-right text-xs text-gray-500 font-medium">
+                                                        {new Date(file.uploadDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                    </div>
 
-                                                <div className="flex items-center">
-                                                    <a
-                                                        href={getFileUrl(file)}
-                                                        target="_blank"
-                                                        rel="noreferrer"
-                                                        className="p-2 text-gray-300 hover:text-blue-600 transition-colors mr-2"
-                                                        title="View File"
-                                                    >
-                                                        <ArrowLeft className="w-5 h-5 rotate-180" />
-                                                    </a>
-                                                    {role === 'admin' && (
-                                                        <button
-                                                            onClick={() => {
-                                                                if (confirm('Delete this file?')) handleDeleteFile(file.id);
-                                                            }}
-                                                            className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
-                                                            title="Delete File"
-                                                        >
-                                                            <Trash2 className="w-4 h-4" />
+                                                    {/* Size Col (Placeholder) & Actions */}
+                                                    <div className="col-span-3 flex items-center justify-end gap-4">
+                                                        <span className="text-xs text-gray-500 font-bold">-- MB</span>
+                                                        <button className="text-gray-300 hover:text-gray-500">
+                                                            <MoreVertical className="w-4 h-4" />
                                                         </button>
-                                                    )}
+                                                    </div>
                                                 </div>
                                             </li>
                                         ))}
                                     </ul>
                                 )}
                             </div>
-                        )}
-                    </div>
-
-                </main>
+                        </div>
+                    )}
             </div>
 
-            {/* Modals */}
-            <Modal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} title="Create New Folder">
-                <form onSubmit={handleCreateFolder}>
-                    <div className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Folder Name</label>
-                            <input
-                                type="text"
-                                value={newFolderName}
-                                onChange={(e) => setNewFolderName(e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                                placeholder="e.g. Policies 2024"
-                                autoFocus
-                            />
-                        </div>
-                        <div className="flex justify-end pt-2">
-                            <button
-                                type="submit"
-                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
-                            >
-                                Create Folder
-                            </button>
-                        </div>
-                    </div>
-                </form>
-            </Modal>
+        </main>
+            </div >
+
+        {/* Modals */ }
+        < Modal isOpen = { isCreateModalOpen } onClose = {() => setIsCreateModalOpen(false)
+} title = "Create New Folder" >
+    <form onSubmit={handleCreateFolder}>
+        <div className="space-y-4">
+            <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Folder Name</label>
+                <input
+                    type="text"
+                    value={newFolderName}
+                    onChange={(e) => setNewFolderName(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                    placeholder="e.g. Policies 2024"
+                    autoFocus
+                />
+            </div>
+            <div className="flex justify-end pt-2">
+                <button
+                    type="submit"
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+                >
+                    Create Folder
+                </button>
+            </div>
+        </div>
+    </form>
+            </Modal >
 
             <Modal isOpen={isUploadModalOpen} onClose={() => setIsUploadModalOpen(false)} title="Upload File">
                 <form onSubmit={handleUploadFile}>
