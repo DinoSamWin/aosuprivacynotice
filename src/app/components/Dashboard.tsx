@@ -45,7 +45,7 @@ interface DashboardProps {
 function SortableFolderItem({ folder, role, onOpen, onDelete }: {
     folder: Folder;
     role: 'admin' | 'guest';
-    onOpen: (id: string) => void;
+    onOpen: (id: string, name: string) => void;
     onDelete: (id: string, e: React.MouseEvent) => void;
 }) {
     const {
@@ -67,7 +67,7 @@ function SortableFolderItem({ folder, role, onOpen, onDelete }: {
             style={style}
             {...attributes}
             {...listeners}
-            onClick={() => onOpen(folder.id)}
+            onClick={() => onOpen(folder.id, folder.name)}
             className="group relative bg-white aspect-square rounded-[2rem] p-6 shadow-sm hover:shadow-xl hover:shadow-blue-500/10 border border-gray-100 flex flex-col items-center justify-center cursor-pointer transition-all duration-300 hover:-translate-y-1"
         >
             <div className="w-20 h-20 bg-gray-50 rounded-[1.5rem] flex items-center justify-center text-gray-400 group-hover:bg-blue-50 group-hover:text-blue-500 transition-colors mb-4">
@@ -465,23 +465,34 @@ export default function Dashboard({ role }: DashboardProps) {
                             </div>
                         </div>
                     )}
-                    value={newFolderName}
-                    onChange={(e) => setNewFolderName(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                    placeholder="e.g. Policies 2024"
-                    autoFocus
-                />
+                </main>
             </div>
-            <div className="flex justify-end pt-2">
-                <button
-                    type="submit"
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
-                >
-                    Create Folder
-                </button>
-            </div>
-        </div>
-    </form >
+
+            {/* Modals */}
+            <Modal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} title="Create New Folder">
+                <form onSubmit={handleCreateFolder}>
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Folder Name</label>
+                            <input
+                                type="text"
+                                value={newFolderName}
+                                onChange={(e) => setNewFolderName(e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                placeholder="e.g. Policies 2024"
+                                autoFocus
+                            />
+                        </div>
+                        <div className="flex justify-end pt-2">
+                            <button
+                                type="submit"
+                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+                            >
+                                Create Folder
+                            </button>
+                        </div>
+                    </div>
+                </form >
             </Modal >
 
             <Modal isOpen={isUploadModalOpen} onClose={() => setIsUploadModalOpen(false)} title="Upload File">
