@@ -411,6 +411,15 @@ export default function Dashboard({ role }: DashboardProps) {
                     <div>
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-lg font-bold text-gray-800">Recents</h2>
+                            {role === 'admin' && (
+                                <button
+                                    onClick={() => setIsUploadModalOpen(true)}
+                                    className="flex items-center gap-2 text-sm font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-xl transition-colors"
+                                >
+                                    <Upload className="w-4 h-4" />
+                                    Upload
+                                </button>
+                            )}
                         </div>
 
                         {/* Table Header */}
@@ -423,8 +432,19 @@ export default function Dashboard({ role }: DashboardProps) {
                         <div className="bg-white rounded-3xl shadow-sm border border-gray-100/50 overflow-hidden">
                             {files.length === 0 && folders.length === 0 ? (
                                 <div className="p-12 text-center text-gray-400 flex flex-col items-center">
-                                    <FileText className="w-12 h-12 text-gray-200 mb-3" />
-                                    <p>No files in this folder.</p>
+                                    <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                                        <FileText className="w-8 h-8 text-gray-300" />
+                                    </div>
+                                    <p className="mb-6 font-medium">No files in this folder.</p>
+                                    {role === 'admin' && (
+                                        <button
+                                            onClick={() => setIsUploadModalOpen(true)}
+                                            className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-6 py-2.5 font-semibold text-sm shadow-md shadow-blue-200 transition-all flex items-center gap-2"
+                                        >
+                                            <Upload className="w-4 h-4" />
+                                            Upload File
+                                        </button>
+                                    )}
                                 </div>
                             ) : (
                                 <ul className="divide-y divide-gray-50">
