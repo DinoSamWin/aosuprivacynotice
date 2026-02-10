@@ -523,24 +523,6 @@ export default function Dashboard({ role }: DashboardProps) {
 
                     {/* Files List */}
                     <div className="flex-1 min-h-0 flex flex-col">
-                        <div className="flex items-center justify-between mb-6 flex-shrink-0">
-                            <h2 className="text-lg font-bold text-gray-800">Files</h2>
-                            <div className="flex items-center gap-10 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                                <span className="w-[300px]">Name</span>
-                                <span className="w-32 text-right">Modified</span>
-                                <span className="w-20 text-right">Size</span>
-                            </div>
-                            {role === 'admin' && (
-                                <button
-                                    onClick={() => setIsUploadModalOpen(true)}
-                                    className="flex items-center gap-2 text-sm font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-xl transition-colors ml-auto"
-                                >
-                                    <Upload className="w-4 h-4" />
-                                    Upload
-                                </button>
-                            )}
-                        </div>
-
                         <div className="flex-1 overflow-y-auto pr-2 relative">
                             {files.length === 0 && folders.length === 0 ? (
                                 <div className="p-12 text-center text-gray-400 flex flex-col items-center">
@@ -559,36 +541,38 @@ export default function Dashboard({ role }: DashboardProps) {
                                     )}
                                 </div>
                             ) : (
-                                <div className="relative pl-8 pt-2 pb-10">
-                                    {/* Vertical Timeline Line */}
-                                    <div className="absolute left-3 top-0 bottom-0 w-px bg-gray-200" />
+                                files.length > 0 && (
+                                    <div className="relative pl-8 pt-2 pb-10">
+                                        {/* Vertical Timeline Line */}
+                                        <div className="absolute left-3 top-0 bottom-0 w-px bg-gray-200" />
 
-                                    <DndContext
-                                        sensors={sensors}
-                                        collisionDetection={closestCenter}
-                                        onDragEnd={handleDragEnd}
-                                    >
-                                        <SortableContext
-                                            items={files.map(f => f.id)}
-                                            strategy={rectSortingStrategy}
+                                        <DndContext
+                                            sensors={sensors}
+                                            collisionDetection={closestCenter}
+                                            onDragEnd={handleDragEnd}
                                         >
-                                            <div>
-                                                {files.map((file, index) => (
-                                                    <SortableFileItem
-                                                        key={file.id}
-                                                        file={file}
-                                                        index={index}
-                                                        role={role}
-                                                        onDelete={(e) => {
-                                                            e.preventDefault();
-                                                            setFileToDelete(file);
-                                                        }}
-                                                    />
-                                                ))}
-                                            </div>
-                                        </SortableContext>
-                                    </DndContext>
-                                </div>
+                                            <SortableContext
+                                                items={files.map(f => f.id)}
+                                                strategy={rectSortingStrategy}
+                                            >
+                                                <div>
+                                                    {files.map((file, index) => (
+                                                        <SortableFileItem
+                                                            key={file.id}
+                                                            file={file}
+                                                            index={index}
+                                                            role={role}
+                                                            onDelete={(e) => {
+                                                                e.preventDefault();
+                                                                setFileToDelete(file);
+                                                            }}
+                                                        />
+                                                    ))}
+                                                </div>
+                                            </SortableContext>
+                                        </DndContext>
+                                    </div>
+                                )
                             )}
                         </div>
                     </div>
