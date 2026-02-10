@@ -59,15 +59,51 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Upload failed: ' + (error as Error).message }, { status: 500 });
     }
 
-    const fileRecord = {
+    // Calculate order in store.ts addFile, but better to be explicit or let store handle it.
+    // store.addFile handles logic now.
+
+    const fileRecord: any = { // Temporary any to bypass type check before order is assigned by store? 
+        // No, store.addFile expects FileStr. But I just added order to FileStr.
+        // So I need to provide order here or make it optional in type?
+        // I made it required in type. So I should provide it or update type to optional?
+        // User wants persistent order.
+        // Let's check store.ts again. I modified addFile to calculate order.
+        // But typescript might complain if I pass an object without order to a function expecting FileStr.
+        // I'll set order: -1 initially and let store update it, OR update store.addFile to take Omit<FileStr, 'order'>.
+        // Simpler: Set order: 0 here, store overwrites it.
         id: uuidv4(),
         name: filename,
         folderId,
         remark: remark || '',
         path: fileUrl,
-        uploadDate: new Date().toISOString()
+        uploadDate: new Date().toISOString(),
+        order: 0 // Placeholder, will be updated by addFile logic
     };
 
     await addFile(fileRecord);
+    // Fetch the file back to get the correct order? 
+    // allow addFile to mutate or return the file?
+    // In store.ts: file.order = maxOrder + 1; store.files.push(file);
+    // Since objects are passed by reference, fileRecord.order will be updated.
+
     return NextResponse.json(fileRecord);
+}
+
+export async function PUT(request: NextRequest) {
+    const session = await getSession();
+    if (session?.role !== 'admin') {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { items } = body; // Array of { id, order }
+
+    if (!items || !Array.isArray(items)) {
+        return NextResponse.json({ error: 'Invalid data' }, { status: 400 });
+    }
+
+    // Dynamic import to avoid circular dependency if any? No.
+    const { updateFileOrder } = await import('@/lib/store');
+    await updateFileOrder(items);
+    return NextResponse.json({ success: true });
 }

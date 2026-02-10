@@ -100,8 +100,25 @@ export async function updateFolderOrder(items: { id: string; order: number }[]):
     await saveStore(store);
 }
 
+export async function updateFileOrder(items: { id: string; order: number }[]): Promise<void> {
+    const store = await getStore();
+    items.forEach(item => {
+        const file = store.files.find(f => f.id === item.id);
+        if (file) {
+            file.order = item.order;
+        }
+    });
+    await saveStore(store);
+}
+
 export async function addFile(file: FileStr): Promise<void> {
     const store = await getStore();
+    // Assign order if not present (should be passed or calculated here)
+    // Calculate max order for this folder
+    const folderFiles = store.files.filter(f => f.folderId === file.folderId);
+    const maxOrder = folderFiles.reduce((max, f) => Math.max(max, f.order || 0), -1);
+    file.order = maxOrder + 1;
+
     store.files.push(file);
     await saveStore(store);
 }

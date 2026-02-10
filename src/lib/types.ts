@@ -14,6 +14,7 @@ export interface FileStr {
   remark?: string;
   path: string; // Relative path in public/uploads or absolute URL
   uploadDate: string;
+  order: number;
 }
 
 export interface DataStore {

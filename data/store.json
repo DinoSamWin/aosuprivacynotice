@@ -1,34 +1,11 @@
 {
   "folders": [
     {
-      "id": "4962d0ac-98b3-4fbb-ad7d-848021005902",
-      "name": "2024",
+      "id": "121abe52-c662-44eb-879f-d3f918342e3c",
+      "name": "Test",
       "parentId": null,
       "order": 0
-    },
-    {
-      "id": "83d28d96-a6f6-461d-b471-6e41a1fda213",
-      "name": "2025",
-      "parentId": null,
-      "order": 1
     }
   ],
-  "files": [
-    {
-      "id": "d68f8d93-cbb8-49b1-b70f-7f1813d5968d",
-      "name": "2025年客户端数据摘要.xlsx",
-      "folderId": "4962d0ac-98b3-4fbb-ad7d-848021005902",
-      "remark": "",
-      "path": "/uploads/1c65bbc7-83da-4318-87d0-fc76ca283654-2025年客户端数据摘要.xlsx",
-      "uploadDate": "2026-01-27T09:06:37.510Z"
-    },
-    {
-      "id": "0de9295e-87ce-4e05-a63b-cfd7033e611d",
-      "name": "EU0150016080001S-风险.pdf",
-      "folderId": "4962d0ac-98b3-4fbb-ad7d-848021005902",
-      "remark": "Test",
-      "path": "/uploads/391a0bf4-bfe6-4d5e-9d88-7b0419a7b49c-EU0150016080001S-风险.pdf",
-      "uploadDate": "2026-01-27T09:07:24.202Z"
-    }
-  ]
+  "files": []
 }

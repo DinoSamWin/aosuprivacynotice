@@ -67,3 +67,13 @@ export const deleteFile = async (id: string) => {
     if (!res.ok) throw new Error('Failed to delete file');
     return res.json();
 };
+
+export const updateFileOrder = async (items: { id: string; order: number }[]) => {
+    const res = await fetch('/api/files', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items }),
+    });
+    if (!res.ok) throw new Error('Failed to update file order');
+    return res.json();
+};

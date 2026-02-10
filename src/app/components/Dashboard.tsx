@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
     Folder as FolderIcon,
     FileText,
@@ -92,6 +92,121 @@ function SortableFolderItem({ folder, role, onOpen, onDelete }: {
     );
 }
 
+// Sortable File Item
+function SortableFileItem({ file, index, role, onDelete }: {
+    file: FileStr;
+    index: number;
+    role: 'admin' | 'guest';
+    onDelete: (e: React.MouseEvent) => void;
+}) {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging
+    } = useSortable({ id: file.id });
+
+    const style = {
+        transform: CSS.Translate.toString(transform),
+        transition,
+        zIndex: isDragging ? 50 : 'auto',
+    };
+
+    const getFileUrl = (file: FileStr) => {
+        const ext = file.name.split('.').pop()?.toLowerCase();
+        const officeExts = ['xlsx', 'xls', 'docx', 'doc', 'pptx', 'ppt'];
+        if (ext && officeExts.includes(ext)) {
+            return `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(file.path)}`;
+        }
+        return file.path;
+    };
+
+    const getFileIcon = (filename: string) => {
+        const ext = filename.split('.').pop()?.toLowerCase();
+        switch (ext) {
+            case 'pdf': return <FileText className="w-5 h-5 text-red-500" />;
+            case 'xlsx':
+            case 'xls': return <FileSpreadsheet className="w-5 h-5 text-green-600" />;
+            case 'docx':
+            case 'doc': return <FileText className="w-5 h-5 text-blue-600" />;
+            case 'pptx':
+            case 'ppt': return <FileText className="w-5 h-5 text-orange-500" />;
+            case 'jpg':
+            case 'jpeg':
+            case 'png': return <FileText className="w-5 h-5 text-purple-600" />;
+            default: return <FileText className="w-5 h-5 text-gray-400" />;
+        }
+    };
+
+    return (
+        <div
+            ref={setNodeRef}
+            style={style}
+            {...attributes}
+            {...listeners}
+            className={`relative mb-8 last:mb-0 group ${isDragging ? 'opacity-50' : ''}`}
+        >
+            {/* Version Node */}
+            <div className="absolute -left-[29px] top-6 flex items-center justify-center w-6 h-6 rounded-full bg-blue-500 border-4 border-white shadow-sm z-10">
+                <div className="w-1.5 h-1.5 rounded-full bg-white" />
+            </div>
+
+            {/* Version Label */}
+            <div className="mb-3 pl-4">
+                <h3 className="text-sm font-bold text-gray-800">version {index + 1}</h3>
+            </div>
+
+            {/* File Card */}
+            <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md hover:border-blue-100 transition-all flex items-center gap-4 cursor-grab active:cursor-grabbing ml-4">
+                {/* Icon */}
+                <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
+                    {getFileIcon(file.name)}
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-3">
+                            <a
+                                href={getFileUrl(file)}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-base font-bold text-gray-800 hover:text-blue-600 transition-colors truncate block max-w-[300px]"
+                                onPointerDown={(e) => e.stopPropagation()} // Allow click to open
+                            >
+                                {file.name}
+                            </a>
+                            {file.remark && (
+                                <span className="bg-red-50 text-red-500 text-[10px] font-bold px-2 py-0.5 rounded border border-red-100">
+                                    {file.remark}
+                                </span>
+                            )}
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <div className="text-xs text-gray-400 font-medium">
+                                {new Date(file.uploadDate).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
+                            </div>
+                            <div className="text-xs text-gray-400 font-bold">-- MB</div>
+                            {role === 'admin' && (
+                                <button
+                                    onClick={onDelete}
+                                    onPointerDown={(e) => e.stopPropagation()}
+                                    className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                                    title="Delete"
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 export default function Dashboard({ role }: DashboardProps) {
     const router = useRouter();
 
@@ -112,7 +227,7 @@ export default function Dashboard({ role }: DashboardProps) {
 
     // DnD Sensors
     const sensors = useSensors(
-        useSensor(PointerSensor, { activationConstraint: { distance: 8 } }), // Distance 8 to allow click
+        useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
         useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
     );
 
@@ -124,7 +239,9 @@ export default function Dashboard({ role }: DashboardProps) {
 
             // Always fetch files (handles null for root)
             const filesData = await api.fetchFiles(currentFolderId);
-            setFiles(filesData);
+            // Sort files by order if present (though backend should handle it, client sort is safer visual)
+            const sortedFiles = filesData.sort((a, b) => (a.order || 0) - (b.order || 0));
+            setFiles(sortedFiles);
         } catch (err) {
             console.error(err);
         }
@@ -217,46 +334,34 @@ export default function Dashboard({ role }: DashboardProps) {
         const { active, over } = event;
         if (role !== 'admin' || !over || active.id === over.id) return;
 
-        setFolders((items) => {
-            const oldIndex = items.findIndex((i) => i.id === active.id);
-            const newIndex = items.findIndex((i) => i.id === over.id);
-            const newItems = arrayMove(items, oldIndex, newIndex);
+        // Check if dragging folder or file
+        const isFolder = folders.some(f => f.id === active.id);
 
-            // Update order in background
-            const updates = newItems.map((item, index) => ({ id: item.id, order: index }));
-            api.updateFolderOrder(updates);
+        if (isFolder) {
+            setFolders((items) => {
+                const oldIndex = items.findIndex((i) => i.id === active.id);
+                const newIndex = items.findIndex((i) => i.id === over.id);
+                const newItems = arrayMove(items, oldIndex, newIndex);
 
-            return newItems;
-        });
-    };
+                const updates = newItems.map((item, index) => ({ id: item.id, order: index }));
+                api.updateFolderOrder(updates);
 
-    const getFileUrl = (file: FileStr) => {
-        const ext = file.name.split('.').pop()?.toLowerCase();
-        const officeExts = ['xlsx', 'xls', 'docx', 'doc', 'pptx', 'ppt'];
-        if (ext && officeExts.includes(ext)) {
-            return `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(file.path)}`;
-        }
-        return file.path;
-    };
+                return newItems;
+            });
+        } else {
+            // Dragging File
+            setFiles((items) => {
+                const oldIndex = items.findIndex((i) => i.id === active.id);
+                const newIndex = items.findIndex((i) => i.id === over.id);
+                const newItems = arrayMove(items, oldIndex, newIndex);
 
-    const getFileIcon = (filename: string) => {
-        const ext = filename.split('.').pop()?.toLowerCase();
-        switch (ext) {
-            case 'pdf': return <FileText className="w-5 h-5 text-red-500" />;
-            case 'xlsx':
-            case 'xls': return <FileSpreadsheet className="w-5 h-5 text-green-600" />;
-            case 'docx':
-            case 'doc': return <FileText className="w-5 h-5 text-blue-600" />;
-            case 'pptx':
-            case 'ppt': return <FileText className="w-5 h-5 text-orange-500" />; // using FileText as placeholder if Presentation icon not imported, or import it
-            case 'jpg':
-            case 'jpeg':
-            case 'png': return <FileText className="w-5 h-5 text-purple-600" />; // Image icon would be better
-            default: return <FileText className="w-5 h-5 text-gray-400" />;
+                const updates = newItems.map((item, index) => ({ id: item.id, order: index }));
+                api.updateFileOrder(updates); // Call API to update order
+
+                return newItems;
+            });
         }
     };
-
-
 
     return (
         <div className="flex h-screen bg-gray-50">
@@ -358,9 +463,9 @@ export default function Dashboard({ role }: DashboardProps) {
                     </div>
                 </header>
 
-                <main className="flex-1 overflow-auto p-8 relative">
+                <main className="flex-1 overflow-auto p-8 relative flex flex-col h-full">
                     {/* Header: Breadcrumbs (Search Removed) */}
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 flex-shrink-0">
                         <nav className="flex items-center flex-wrap gap-2 text-lg text-gray-800 font-bold">
                             <button
                                 onClick={() => { setCurrentFolderId(null); setBreadcrumbs([]); }}
@@ -385,7 +490,7 @@ export default function Dashboard({ role }: DashboardProps) {
 
                     {/* Folders Grid - Always Visible if folders exist */}
                     {folders.length > 0 && (
-                        <div className="mb-10">
+                        <div className="mb-10 flex-shrink-0">
                             <h2 className="text-lg font-bold text-gray-800 mb-6">Folders</h2>
                             <DndContext
                                 sensors={sensors}
@@ -414,103 +519,7 @@ export default function Dashboard({ role }: DashboardProps) {
 
 
 
-                    {/* Recents (Files) - Always Visible */}
-                    <div>
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-lg font-bold text-gray-800">Recents</h2>
-                            {role === 'admin' && (
-                                <button
-                                    onClick={() => setIsUploadModalOpen(true)}
-                                    className="flex items-center gap-2 text-sm font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-xl transition-colors"
-                                >
-                                    <Upload className="w-4 h-4" />
-                                    Upload
-                                </button>
-                            )}
-                        </div>
 
-                        {/* Table Header */}
-                        <div className="grid grid-cols-12 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4 px-6">
-                            <div className="col-span-6">Name</div>
-                            <div className="col-span-3 text-right">Modified</div>
-                            <div className="col-span-3 text-right">Size</div>
-                        </div>
-
-                        <div className="bg-white rounded-3xl shadow-sm border border-gray-100/50 overflow-hidden">
-                            {files.length === 0 && folders.length === 0 ? (
-                                <div className="p-12 text-center text-gray-400 flex flex-col items-center">
-                                    <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
-                                        <FileText className="w-8 h-8 text-gray-300" />
-                                    </div>
-                                    <p className="mb-6 font-medium">No files in this folder.</p>
-                                    {role === 'admin' && (
-                                        <button
-                                            onClick={() => setIsUploadModalOpen(true)}
-                                            className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-6 py-2.5 font-semibold text-sm shadow-md shadow-blue-200 transition-all flex items-center gap-2"
-                                        >
-                                            <Upload className="w-4 h-4" />
-                                            Upload File
-                                        </button>
-                                    )}
-                                </div>
-                            ) : (
-                                <ul className="divide-y divide-gray-50">
-                                    {/* Render Files */}
-                                    {files.map((file) => (
-                                        <li key={file.id} className="px-6 py-4 hover:bg-gray-50/50 flex items-center justify-between group transition-colors">
-                                            <div className="flex-1 min-w-0 grid grid-cols-12 items-center">
-
-                                                {/* Name Col */}
-                                                <div className="col-span-6 flex items-center pr-6">
-                                                    <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl mr-4">
-                                                        {getFileIcon(file.name)}
-                                                    </div>
-                                                    <div className="min-w-0">
-                                                        <a
-                                                            href={getFileUrl(file)}
-                                                            target="_blank"
-                                                            rel="noreferrer"
-                                                            className="text-sm font-bold text-gray-700 hover:text-blue-600 transition-colors block truncate"
-                                                        >
-                                                            {file.name}
-                                                        </a>
-                                                        {/* Inline Remark */}
-                                                        {file.remark && (
-                                                            <span className="inline-block mt-1 px-2 py-0.5 bg-[#FFF5F2] text-orange-600 text-[10px] font-bold rounded border border-[#FFE3DC]">
-                                                                {file.remark}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                </div>
-
-                                                {/* Modified Col */}
-                                                <div className="col-span-3 text-right text-xs text-gray-500 font-medium">
-                                                    {new Date(file.uploadDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                                                </div>
-
-                                                {/* Actions Col */}
-                                                <div className="col-span-3 flex items-center justify-end gap-4">
-                                                    <span className="text-xs text-gray-500 font-bold">-- MB</span>
-                                                    {role === 'admin' && (
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.preventDefault();
-                                                                setFileToDelete(file);
-                                                            }}
-                                                            className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
-                                                            title="Delete"
-                                                        >
-                                                            <Trash2 className="w-4 h-4" />
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
-                        </div>
-                    </div>
                 </main>
 
 
